@@ -1,0 +1,72 @@
+name: Extract IPTV
+on:
+  schedule:
+    - cron: 15,45 0-18,22-23 * * *
+  push:
+  workflow_dispatch:
+    inputs:
+      rebuild:
+        description: '忽略构建记录以重新构建'
+        required: false
+        type: boolean
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    environment:
+      name: xx
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - userName: Ftindy
+            repoName: IPTV-URL
+            branchName: main
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Check New Commit
+        run: |
+          upStream=https://github.com/${{ matrix.userName }}/${{ matrix.repoName }}
+          echo "upStream=$upStream" >> $GITHUB_ENV
+          commit=$(curl -sL $upStream/commits/${{ matrix.branchName }} |grep -o "/${{ matrix.userName }}/${{ matrix.repoName }}/commit/[a-z0-9]\+" |head -1 | cut -d\/ -f5)
+          if ! grep -q "$commit" README.md || [ "${{ inputs.rebuild }}" == "true" ]; then
+            echo "commit=$commit" >> $GITHUB_ENV
+            echo "commitS=${commit:0:7}" >> $GITHUB_ENV
+          fi
+      - name: Checkout repository
+        if: ${{ env.commit }}
+        uses: actions/checkout@v2
+        with:
+          ssh-strict: false
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Setup Node.js environment
+        if: ${{ env.commit }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install Dependencies
+        if: ${{ env.commit }}
+        run: npm install
+
+      - name: Run JavaScript script
+        if: ${{ env.commit }}
+        run: node ipv6Convert.js
+
+      - name: Commit and push changes
+        if: ${{ env.commit }}
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git add .
+          
+      - name: Push to master
+        if: ${{ env.commit }}
+        run: |
+          sed -i "/${{ matrix.userName }}\/${{ matrix.repoName }}/s#Updated: [a-zA-Z0-9]*#Updated: ${{ env.commit }}#" README.md
+          git add README.md
+          git commit -m "Update IPTV"
+          git push
