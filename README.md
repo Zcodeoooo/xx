@@ -4,7 +4,7 @@
 ## Credits
 This repo relies on the following third-party projects:
 
-- [IPTV-URL](https://github.com/Ftindy/IPTV-URL) (Updated: db1d3f4ba6d32aa42874e60cb77188f2212330a9)
+- [IPTV-URL](https://github.com/Ftindy/IPTV-URL) (Updated: 2222f0beb0d1d2600335587ff0c221cffbf243da)
 
 https://mirror.ghproxy.com/https://raw.githubusercontent.com/Zcodeoooo/xx/main/iptv.m3u
 https://mirror.ghproxy.com/https://raw.githubusercontent.com/Zcodeoooo/xx/main/iptvzb.m3u
